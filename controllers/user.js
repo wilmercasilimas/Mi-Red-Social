@@ -285,7 +285,7 @@ const list = async (req, res) => {
   try {
     // Página actual
     let page = parseInt(req.params.page) || 1;
-    const itemsPerPage = 5;
+    const itemsPerPage = 6; // Número de resultados por página
     const skip = (page - 1) * itemsPerPage;
 
     // Obtener todos los usuarios paginados
