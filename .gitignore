@@ -1,0 +1,20 @@
+# Node
+node_modules/
+.env
+.DS_Store
+*.log
+npm-debug.log*
+
+# Sistema
+.vscode/
+.idea/
+*.swp
+
+# Producción / Temporal
+dist/
+build/
+coverage/
+uploads/
+temp/
+# Ignorar archivo de configuración sensible
+.env
