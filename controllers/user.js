@@ -677,6 +677,71 @@ const listAdmins = async (req, res) => {
   }
 };
 
+// Buscar usuarios por nombre o coincidencia parcial
+const buscarUsuariosPorNombre = async (req, res) => {
+  try {
+    const usuarioAutenticadoId = req.user.id;
+    const { nombre } = req.body;
+
+    if (!nombre || nombre.trim() === "") {
+      return res.status(400).json({
+        status: "error",
+        message: "El nombre es obligatorio para buscar.",
+      });
+    }
+
+    // Buscar usuarios por coincidencia de nombre
+    const usuarios = await User.find({
+      name: { $regex: new RegExp(nombre, "i") }
+    }).select("-password -role");
+
+    if (usuarios.length === 0) {
+      return res.status(404).json({
+        status: "error",
+        message: "No se encontraron usuarios con ese nombre",
+      });
+    }
+
+    const resultados = [];
+
+    for (const usuario of usuarios) {
+      const usuarioId = usuario._id.toString();
+
+      // Verificar relaciones
+      const yoLoSigo = await Follow.findOne({ user: usuarioAutenticadoId, followed: usuarioId });
+      const elMeSigue = await Follow.findOne({ user: usuarioId, followed: usuarioAutenticadoId });
+
+      // A quién sigue este usuario
+      const sigueA = await Follow.find({ user: usuarioId }).populate("followed", "name nick image");
+
+      // Quiénes lo siguen
+      const loSiguen = await Follow.find({ followed: usuarioId }).populate("user", "name nick image");
+
+      resultados.push({
+        ...usuario.toObject(),
+        loSigo: !!yoLoSigo,
+        meSigue: !!elMeSigue,
+        sigueA: sigueA.map(f => f.followed),
+        loSiguen: loSiguen.map(f => f.user),
+      });
+    }
+
+    return res.status(200).json({
+      status: "success",
+      resultados
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      status: "error",
+      message: "Error al buscar usuarios por nombre",
+      error: error.message
+    });
+  }
+};
+
+
+
 // Exportar las funciones
 module.exports = {
   pruebaUser,
@@ -693,4 +758,5 @@ module.exports = {
   changeRole,
   listAdmins,
   adminRegister,
+  buscarUsuariosPorNombre,
 };
