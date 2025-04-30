@@ -48,8 +48,7 @@ const validate = (params) => {
   }
 
   if (
-    !params.bio ||
-    validator.isEmpty(params.bio.trim()) ||
+    (!params.bio && validator.isEmpty(params.bio.trim())) ||
     !validator.isLength(params.bio.trim(), { min: 5, max: 250 })
   ) {
     errores.push(

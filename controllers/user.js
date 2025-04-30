@@ -692,7 +692,7 @@ const buscarUsuariosPorNombre = async (req, res) => {
 
     // Buscar usuarios por coincidencia de nombre
     const usuarios = await User.find({
-      name: { $regex: new RegExp(nombre, "i") }
+      name: { $regex: new RegExp(nombre, "i") },
     }).select("-password -role");
 
     if (usuarios.length === 0) {
@@ -708,39 +708,48 @@ const buscarUsuariosPorNombre = async (req, res) => {
       const usuarioId = usuario._id.toString();
 
       // Verificar relaciones
-      const yoLoSigo = await Follow.findOne({ user: usuarioAutenticadoId, followed: usuarioId });
-      const elMeSigue = await Follow.findOne({ user: usuarioId, followed: usuarioAutenticadoId });
+      const yoLoSigo = await Follow.findOne({
+        user: usuarioAutenticadoId,
+        followed: usuarioId,
+      });
+      const elMeSigue = await Follow.findOne({
+        user: usuarioId,
+        followed: usuarioAutenticadoId,
+      });
 
       // A quién sigue este usuario
-      const sigueA = await Follow.find({ user: usuarioId }).populate("followed", "name nick image");
+      const sigueA = await Follow.find({ user: usuarioId }).populate(
+        "followed",
+        "name nick image"
+      );
 
       // Quiénes lo siguen
-      const loSiguen = await Follow.find({ followed: usuarioId }).populate("user", "name nick image");
+      const loSiguen = await Follow.find({ followed: usuarioId }).populate(
+        "user",
+        "name nick image"
+      );
 
       resultados.push({
         ...usuario.toObject(),
         loSigo: !!yoLoSigo,
         meSigue: !!elMeSigue,
-        sigueA: sigueA.map(f => f.followed),
-        loSiguen: loSiguen.map(f => f.user),
+        sigueA: sigueA.map((f) => f.followed),
+        loSiguen: loSiguen.map((f) => f.user),
       });
     }
 
     return res.status(200).json({
       status: "success",
-      resultados
+      resultados,
     });
-
   } catch (error) {
     return res.status(500).json({
       status: "error",
       message: "Error al buscar usuarios por nombre",
-      error: error.message
+      error: error.message,
     });
   }
 };
-
-
 
 // Exportar las funciones
 module.exports = {
